@@ -37,12 +37,12 @@ private val readyList = mutableListOf<ThreadContinuation>()
 
 /*
  * The scheduling function.
- * All the cooperative threads run in the context of the JVM threads where is function is called.
+ * All the cooperative threads run in the context of the JVM thread where this function is called.
  */
 fun schedule() {
     while (true) {
         if (readyList.isEmpty()) {
-            // Since we don't have I/O or timers, there isn't nothing to do if the ready list is empty
+            // Since we don't have any I/O or timers, there isn't anything left to do if the ready list is empty.
             log.info("Ready list is empty, nothing else to do. Ending.")
             return
         }
@@ -55,7 +55,7 @@ fun schedule() {
 }
 
 /*
- * Suspend current cooperative thread, but keep it ready
+ * Suspend current cooperative thread, but keep it ready.
  */
 suspend fun yield() =
     suspendCoroutineUninterceptedOrReturn<Unit> { cont ->
@@ -64,7 +64,7 @@ suspend fun yield() =
     }
 
 /*
- * Suspend current cooperative thread, storing it in a wait queue
+ * Suspend current cooperative thread, storing it in the given wait queue.
  */
 suspend fun park(waitQueue: Queue<ThreadContinuation>) =
     suspendCoroutineUninterceptedOrReturn<Unit> { cont ->
@@ -73,7 +73,7 @@ suspend fun park(waitQueue: Queue<ThreadContinuation>) =
     }
 
 /*
- * Continuation that represents the start of a cooperative thread
+ * Continuation that represents the start of a cooperative thread.
  */
 private class StartContinuation(private val threadBlock: suspend () -> Unit) : Continuation<Unit> {
     override val context: CoroutineContext get() = EmptyCoroutineContext
@@ -83,7 +83,7 @@ private class StartContinuation(private val threadBlock: suspend () -> Unit) : C
 }
 
 /*
- * Continuation that represents the end of a cooperative thread
+ * Continuation that represents the end of a cooperative thread.
  */
 private class EndContinuation() : Continuation<Unit> {
     override val context: CoroutineContext get() = EmptyCoroutineContext
@@ -94,7 +94,7 @@ private class EndContinuation() : Continuation<Unit> {
 
 /*
  * Create and start a cooperative thread.
- * A cooperative thread is represented by a suspend function with parameters and returning Unit.
+ * A cooperative thread is represented by a suspend function without parameters and returning Unit.
  */
 fun createAndStartCooperativeThread(threadBlock: suspend () -> Unit) {
     // Here we just create the continuation to start the thread and store it on the ready list.
@@ -138,6 +138,7 @@ class CThreadsTest {
                     for (j in 1..nOfReps) {
                         semaphore.acquire()
                         acc += 1
+                        yield()
                         semaphore.release()
                         yield()
                     }
